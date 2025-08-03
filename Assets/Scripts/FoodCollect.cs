@@ -19,7 +19,6 @@ public class FoodCollect : MonoBehaviour
     private GameObject heldItem = null;
     private GameObject parent;
 
-
     void Start()
     {
         if (audioSource == null)
@@ -35,6 +34,7 @@ public class FoodCollect : MonoBehaviour
     
         parent = transform.parent.gameObject;
     }
+
 
     private void OnTriggerEnter2D(Collider2D other)
     {
