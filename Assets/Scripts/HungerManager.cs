@@ -68,7 +68,7 @@ public class HungerManager : MonoBehaviour
         {
             // Carrega a cena de GameOver.
             // O nome da cena deve ser exatamente "GameOver" (sensível a maiúsculas/minúsculas).
-            SceneManager.LoadScene("GameOver");
+            SceneManager.LoadScene("Menu");
         }
     }
 
