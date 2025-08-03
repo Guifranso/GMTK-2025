@@ -1,23 +1,27 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
-public class CameraMovement : MonoBehaviour
+public class CameraManager : MonoBehaviour
 {
 
     private PointerEventData pointerEventData;
     private EventSystem eventSystem;
 
     public float speed;
+    public float mushroomMoveDuration; // Duração em segundos para o movimento suave
+
 
     public GameObject left;
     public GameObject right;
     public GameObject up;
     public GameObject down;
     public GraphicRaycaster graphicRaycaster;
+    public GameObject bigMushroom;
 
 
     void Start()
@@ -26,6 +30,36 @@ public class CameraMovement : MonoBehaviour
     }
 
     void Update()
+    {
+        CameraMovement();
+    }
+
+    public void goToBigMushroom()
+    {
+        StopAllCoroutines();
+
+        Vector3 targetPosition = new Vector3(bigMushroom.transform.position.x, bigMushroom.transform.position.y, transform.position.z);
+        StartCoroutine(MoveToPosition(targetPosition));
+    }
+
+    private IEnumerator MoveToPosition(Vector3 target)
+    {
+        float elapsedTime = 0;
+        Vector3 startingPosition = transform.position;
+
+        while (elapsedTime < mushroomMoveDuration)
+        {
+            transform.position = Vector3.Lerp(startingPosition, target, elapsedTime / mushroomMoveDuration);
+
+            elapsedTime += Time.deltaTime;
+
+            yield return null;
+        }
+        
+        transform.position = target;
+    }
+
+    void CameraMovement()
     {
         float horizontal = Input.GetAxisRaw("Horizontal");
         float vertical = Input.GetAxisRaw("Vertical");
@@ -47,10 +81,9 @@ public class CameraMovement : MonoBehaviour
             }
         }
 
-       if (moveDirection != Vector2.zero)
+        if (moveDirection != Vector2.zero)
         {
             transform.Translate(moveDirection.normalized * speed * Time.deltaTime);
         }
     }
-
 }

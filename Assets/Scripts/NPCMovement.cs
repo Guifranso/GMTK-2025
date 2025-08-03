@@ -9,6 +9,9 @@ public class NPCMovement : MonoBehaviour
     public float collisionCheckDistance = 0.5f;
     public LayerMask collisionLayer;
 
+    private Animator animator;
+    private SpriteRenderer spriteRenderer;
+
     [Header("Controle de Tempo (Aleatório)")]
     public float minWaitTime = 4f;
     public float maxWaitTime = 7f;
@@ -38,9 +41,12 @@ public class NPCMovement : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        animator = GetComponent<Animator>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
+
         rb.gravityScale = 0;
         mainCamera = Camera.main;
-        
+
         // Guarda a escala inicial do objeto para poder restaurá-la depois
         originalScale = transform.localScale;
 
@@ -67,9 +73,8 @@ public class NPCMovement : MonoBehaviour
                     ContarTempoDeMovimento();
                 }
                 break;
-                
+
             case EstadoNPC.Arrastado:
-                // Nenhuma lógica necessária aqui, tudo é controlado por outros métodos
                 break;
         }
     }
@@ -78,41 +83,48 @@ public class NPCMovement : MonoBehaviour
     {
         if (estadoAtual == EstadoNPC.Movendo)
         {
+            animator.SetBool("isWalking", true);
             rb.linearVelocity = movementDirection * movementSpeed;
+            if (movementDirection.x < 0)
+            {
+                spriteRenderer.flipX = true;
+            }
+            else
+            {
+                spriteRenderer.flipX = false;
+            }
         }
         else if (estadoAtual == EstadoNPC.Arrastado)
         {
+            animator.SetBool("isWalking", false);
             Vector2 mouseWorldPosition = mainCamera.ScreenToWorldPoint(Input.mousePosition);
             rb.MovePosition(mouseWorldPosition);
         }
         else
         {
+            animator.SetBool("isWalking", false);
             rb.linearVelocity = Vector2.zero;
         }
     }
 
-    // --- LÓGICA DE SELEÇÃO ATUALIZADA ---
     void OnMouseDown()
     {
         estadoAtual = EstadoNPC.Arrastado;
         rb.linearVelocity = Vector2.zero;
 
-        // Aumenta a escala do objeto para dar o feedback visual
         transform.localScale = originalScale * scaleMultiplier;
 
         Debug.Log("NPC selecionado, aplicando zoom!");
     }
 
-    // --- LÓGICA PARA SOLTAR ATUALIZADA ---
     void OnMouseUp()
     {
         if (estadoAtual == EstadoNPC.Arrastado)
         {
-            // Restaura a escala original do objeto
             transform.localScale = originalScale;
 
             Debug.Log("NPC solto, retornando à escala original!");
-            
+
             PararEMudarParaEspera();
         }
     }
@@ -149,15 +161,6 @@ public class NPCMovement : MonoBehaviour
             Debug.Log("Colisão iminente detectada com: " + hit.collider.name + ". Cancelando movimento.");
             estadoAtual = EstadoNPC.Esperando;
             currentCooldown = 0.5f;
-        }
-    }
-
-    void OnDrawGizmos()
-    {
-        if (estadoAtual == EstadoNPC.Movendo)
-        {
-            Gizmos.color = Color.red;
-            Gizmos.DrawLine(transform.position, (Vector2)transform.position + movementDirection * collisionCheckDistance);
         }
     }
 }
