@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class NPMLifeManager : MonoBehaviour
+public class NPCLifeManager : MonoBehaviour
 {
     public int life;
     public float lifeDecreaseTimer;
