@@ -23,6 +23,6 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        energyText.text = "Pontos: " + EnergyyManager.points.ToString();
+        energyText.text = "Points: " + EnergyyManager.points.ToString();
     }
 }

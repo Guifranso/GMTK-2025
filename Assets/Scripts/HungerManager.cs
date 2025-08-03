@@ -1,5 +1,6 @@
 using UnityEngine;
-using System.Collections; // Necessário para a abordagem com Corrotina (alternativa)
+using UnityEngine.SceneManagement; // --- ALTERAÇÃO 1: Necessário para gerenciar cenas
+using System.Collections;
 
 public class HungerManager : MonoBehaviour
 {
@@ -11,13 +12,11 @@ public class HungerManager : MonoBehaviour
     [Tooltip("O valor máximo que a fome pode atingir.")]
     public float maxHunger = 100f;
 
-    // MODIFICAÇÃO 1: Adicione esta linha para criar um slider no Inspector
     [Tooltip("Arraste este slider no modo Play para testar a barra.")]
     [Range(0f, 100f)]
     [SerializeField]
     public static float currentHunger;
 
-    // --- NOVO ---
     [Header("Diminuição da Fome")]
     [Tooltip("A cada quantos segundos a fome deve diminuir.")]
     public float hungerDecreaseRate = 1f; // Diminui a cada 1 segundo
@@ -25,9 +24,7 @@ public class HungerManager : MonoBehaviour
     [Tooltip("Quanto de fome o personagem perde a cada intervalo.")]
     public float hungerDecreaseAmount = 2f; // Perde 2 de fome
 
-    // Variável para controlar o tempo
     private float timer;
-    // --- FIM NOVO ---
 
     // Constantes com os seus valores
     private const float MIN_FILL_SCALE_X = 1f;
@@ -44,7 +41,6 @@ public class HungerManager : MonoBehaviour
 
     private void Update()
     {
-        // --- NOVO: Lógica para diminuir a fome ao longo do tempo ---
         // Incrementa o timer com o tempo que passou desde o último frame
         timer += Time.deltaTime;
 
@@ -63,10 +59,17 @@ public class HungerManager : MonoBehaviour
             // Reinicia o timer
             timer = 0f;
         }
-        // --- FIM NOVO ---
 
         // Chama a função de atualização visual a cada frame para refletir as mudanças
         SetHunger(currentHunger);
+
+        // --- ALTERAÇÃO 2: Verifica se a fome chegou a zero para mudar de cena ---
+        if (currentHunger <= 0)
+        {
+            // Carrega a cena de GameOver.
+            // O nome da cena deve ser exatamente "GameOver" (sensível a maiúsculas/minúsculas).
+            SceneManager.LoadScene("GameOver");
+        }
     }
 
     public void SetHunger(float hungerValue)

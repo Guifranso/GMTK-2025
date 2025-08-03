@@ -1,5 +1,5 @@
 using UnityEngine;
-using System.Collections; // Necessário para usar Coroutines
+using System.Collections;
 
 public class CursorManager : MonoBehaviour
 {
@@ -13,8 +13,9 @@ public class CursorManager : MonoBehaviour
     [Tooltip("Arraste aqui a sprite para quando o mouse estiver sobre um inimigo.")]
     public Texture2D cursorSpritePreAttack;
 
-    [Tooltip("A sprite que aparece rapidamente ao atacar um inimigo.")]
-    public Texture2D cursorAttack; // Nova sprite para o momento do ataque
+    // --- ALTERADO ---
+    [Tooltip("A sequência de sprites que aparece ao atacar um inimigo.")]
+    public Texture2D[] cursorAttackFrames; // Agora é um array para a sequência
 
     [Header("Configurações de Detecção")]
     [Tooltip("A tag dos objetos que serão considerados inimigos.")]
@@ -23,17 +24,21 @@ public class CursorManager : MonoBehaviour
     [Header("Configurações do Cursor")]
     [Tooltip("O 'ponto quente' do cursor, onde o clique é registrado. (0,0) é o canto superior esquerdo.")]
     public Vector2 hotspot = Vector2.zero;
-    public float attackCursorDuration = 0.2f; // Duração da sprite de ataque
+    
+    // --- ALTERADO ---
+    [Tooltip("A duração de cada frame na animação de ataque.")]
+    public float attackFrameDuration = 0.1f; // Controla a velocidade da animação
 
     private Camera mainCamera;
-    private bool isAttacking = false; // Flag para controlar o estado de ataque do cursor
+    private bool isAttacking = false;
 
     void Start()
     {
         mainCamera = Camera.main;
-        if (cursorSpriteDefault == null || cursorSpriteClicked == null || cursorSpritePreAttack == null || cursorAttack == null)
+        // Validação foi atualizada para checar o array
+        if (cursorSpriteDefault == null || cursorSpriteClicked == null || cursorSpritePreAttack == null || cursorAttackFrames == null || cursorAttackFrames.Length == 0)
         {
-            Debug.LogError("Uma ou mais sprites do cursor não foram atribuídas no Inspector!");
+            Debug.LogError("Uma ou mais sprites do cursor não foram atribuídas, ou o array de ataque está vazio!");
             return;
         }
         Cursor.SetCursor(cursorSpriteDefault, hotspot, CursorMode.Auto);
@@ -41,7 +46,6 @@ public class CursorManager : MonoBehaviour
 
     void Update()
     {
-        // Se a animação de ataque do cursor estiver ativa, não faz mais nada.
         if (isAttacking)
         {
             return;
@@ -50,20 +54,16 @@ public class CursorManager : MonoBehaviour
         RaycastHit2D hit = Physics2D.Raycast(mainCamera.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
         bool isOverEnemy = hit.collider != null && hit.collider.CompareTag(enemyTag);
 
-        // Se o mouse estiver sobre um inimigo
         if (isOverEnemy)
         {
-            // E o jogador clicar...
             if (Input.GetMouseButtonDown(0))
             {
-                // Tenta pegar o componente SnailMovement do inimigo
                 SnailMovement enemy = hit.collider.GetComponent<SnailMovement>();
                 if (enemy != null)
                 {
-                    // Chama a função de dano no inimigo
                     enemy.TakeDamage(1);
                 }
-
+                
                 StartCoroutine(AttackCursorSequence());
             }
             else
@@ -84,11 +84,20 @@ public class CursorManager : MonoBehaviour
         }
     }
 
+    // --- LÓGICA DA ANIMAÇÃO TOTALMENTE ATUALIZADA ---
     private IEnumerator AttackCursorSequence()
     {
         isAttacking = true;
-        Cursor.SetCursor(cursorAttack, hotspot, CursorMode.Auto);
-        yield return new WaitForSeconds(attackCursorDuration);
+
+        // Loop que passa por cada frame da animação de ataque
+        foreach (var frame in cursorAttackFrames)
+        {
+            Cursor.SetCursor(frame, hotspot, CursorMode.Auto);
+            yield return new WaitForSeconds(attackFrameDuration);
+        }
+
+        // Após a animação, a flag é desativada, e o Update() voltará
+        // a definir o cursor correto (padrão ou pre-attack) no próximo quadro.
         isAttacking = false;
     }
 }
