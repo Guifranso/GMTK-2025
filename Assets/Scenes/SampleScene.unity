@@ -822,7 +822,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   itemPrefab: {fileID: 3572936022344172176, guid: e6a3f9f9236d20343895c15831541e59, type: 3}
+  itemRadius: 0.5
   spawnArea: {fileID: 1668316537}
+  spawnCooldown: 5
+  maxSpawnAttempts: 10
+  forbiddenTags:
+  - BigMushroom
+  - Food
+  - MiniMushroom
 --- !u!4 &88367513
 Transform:
   m_ObjectHideFlags: 0
@@ -937,7 +944,7 @@ GameObject:
   - component: {fileID: 300250762}
   - component: {fileID: 300250761}
   m_Layer: 0
-  m_Name: Spawner
+  m_Name: MiceliumSpawner
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -956,7 +963,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   itemPrefab: {fileID: 3416336353200802039, guid: 4eedd3b7ab0851446b3f50e13852abbb, type: 3}
+  itemRadius: 0.5
   spawnArea: {fileID: 2105656834}
+  spawnCooldown: 5
+  maxSpawnAttempts: 10
+  forbiddenTags:
+  - BigMushroom
+  - Food
+  - MiniMushroom
 --- !u!4 &300250762
 Transform:
   m_ObjectHideFlags: 0
@@ -6300,7 +6314,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 6, y: 6}
+  m_Size: {x: 6.5993304, y: 5.501829}
   m_EdgeRadius: 0
 --- !u!61 &1617267695
 BoxCollider2D:

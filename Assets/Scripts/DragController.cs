@@ -1,3 +1,5 @@
+// DragController.cs
+
 using UnityEngine;
 
 public class DragController : MonoBehaviour
@@ -27,8 +29,9 @@ public class DragController : MonoBehaviour
                 // Tenta pegar o componente NPCMovement do objeto atingido
                 NPCMovement npc = hit.collider.GetComponent<NPCMovement>();
 
-                // Se o objeto tiver o componente, encontramos nosso NPC!
-                if (npc != null)
+                // --- LINHA MODIFICADA ---
+                // Se o objeto tiver o componente E o estado dele for "Esperando", permite o arrasto.
+                if (npc != null && npc.estadoAtual == NPCMovement.EstadoNPC.Esperando)
                 {
                     draggedNPC = npc; // Guarda a referência dele
                     draggedNPC.IniciarArrasto(); // Avisa o NPC para começar a ser arrastado
