@@ -29,11 +29,14 @@ public class NPCMovement : MonoBehaviour
     private Camera mainCamera;
     private Vector3 originalScale;
 
+    private Transform bigMushroomTarget;
+
     public enum EstadoNPC
     {
         Esperando,
         Movendo,
-        Arrastado
+        Arrastado,
+        IndoParaCogumelo
     }
     public EstadoNPC estadoAtual;
 
@@ -45,7 +48,19 @@ public class NPCMovement : MonoBehaviour
         rb.gravityScale = 0;
         mainCamera = Camera.main;
         originalScale = transform.localScale;
-        estadoAtual = EstadoNPC.Esperando;
+
+        GameObject mushroomObj = GameObject.FindWithTag("BigMushroom");
+        if (mushroomObj != null)
+        {
+            bigMushroomTarget = mushroomObj.transform;
+        }
+        else
+        {
+            Debug.LogError("NPC não encontrou o GameObject com a tag 'BigMushroom' na cena!");
+        }
+
+        // Inicia no estado Esperando através da nova função
+        MudarEstado(EstadoNPC.Esperando);
         currentCooldown = Random.Range(minWaitTime, maxWaitTime);
     }
 
@@ -69,6 +84,18 @@ public class NPCMovement : MonoBehaviour
                 }
                 break;
 
+            case EstadoNPC.IndoParaCogumelo:
+                if (bigMushroomTarget != null)
+                {
+                    movementDirection = (bigMushroomTarget.position - transform.position).normalized;
+                }
+                else
+                {
+                    Debug.LogWarning("O alvo BigMushroom foi destruído. O NPC voltará a esperar.");
+                    PararEMudarParaEspera();
+                }
+                break;
+
             case EstadoNPC.Arrastado:
                 // A lógica de seguir o mouse agora está no FixedUpdate
                 break;
@@ -77,15 +104,16 @@ public class NPCMovement : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (estadoAtual == EstadoNPC.Movendo)
+        if (estadoAtual == EstadoNPC.Movendo || estadoAtual == EstadoNPC.IndoParaCogumelo)
         {
             animator.SetBool("isWalking", true);
             rb.linearVelocity = movementDirection * movementSpeed;
+
             if (movementDirection.x < 0)
             {
                 spriteRenderer.flipX = true;
             }
-            else
+            else if (movementDirection.x > 0)
             {
                 spriteRenderer.flipX = false;
             }
@@ -96,29 +124,78 @@ public class NPCMovement : MonoBehaviour
             Vector2 mouseWorldPosition = mainCamera.ScreenToWorldPoint(Input.mousePosition);
             rb.MovePosition(mouseWorldPosition);
         }
-        else
+        else // Estado Esperando
         {
             animator.SetBool("isWalking", false);
             rb.linearVelocity = Vector2.zero;
         }
     }
 
-    // NOVA FUNÇÃO PÚBLICA: Chamada pelo DragController para iniciar o arrasto
+    //-------------------------------------------------------------------//
+    //                 INÍCIO DAS FUNÇÕES ADICIONADAS                    //
+    //-------------------------------------------------------------------//
+
+    /// <summary>
+    /// Centraliza todas as mudanças de estado para garantir consistência.
+    /// </summary>
+    /// <param name="novoEstado">O novo estado para o qual o NPC deve transicionar.</param>
+    private void MudarEstado(EstadoNPC novoEstado)
+    {
+        // Se o estado atual era Arrastado e o novo estado NÃO É Arrastado,
+        // garantimos que a escala volte ao normal.
+        if (estadoAtual == EstadoNPC.Arrastado && novoEstado != EstadoNPC.Arrastado)
+        {
+            transform.localScale = originalScale;
+            Debug.Log("Saindo do estado 'Arrastado', retornando à escala original!");
+        }
+
+        estadoAtual = novoEstado;
+    }
+
+    public void GoToBigMushroom()
+    {
+        if (bigMushroomTarget == null)
+        {
+            Debug.LogError("Não é possível ir até o 'BigMushroom' porque ele não foi encontrado na cena.");
+            return;
+        }
+
+        Debug.Log("Recebeu ordem para ir ao BigMushroom!");
+        // Usa a nova função para mudar o estado
+        MudarEstado(EstadoNPC.IndoParaCogumelo);
+        rb.linearVelocity = Vector2.zero;
+    }
+
+    private void OnTriggerEnter2D(Collider2D  collision)
+    {
+        if (estadoAtual == EstadoNPC.IndoParaCogumelo && collision.gameObject.CompareTag("BigMushroom"))
+        {
+            Debug.Log("Chegou ao BigMushroom! Retornando ao comportamento normal.");
+            PararEMudarParaEspera();
+        }
+    }
+
+    //-------------------------------------------------------------------//
+    //                  FIM DAS FUNÇÕES ADICIONADAS                      //
+    //-------------------------------------------------------------------//
+
     public void IniciarArrasto()
     {
-        estadoAtual = EstadoNPC.Arrastado;
+        // Agora, usamos MudarEstado
+        MudarEstado(EstadoNPC.Arrastado);
         rb.linearVelocity = Vector2.zero;
         transform.localScale = originalScale * scaleMultiplier;
         Debug.Log("NPC selecionado, aplicando zoom!");
     }
 
-    // NOVA FUNÇÃO PÚBLICA: Chamada pelo DragController para soltar o NPC
     public void SoltarArrasto()
     {
         if (estadoAtual == EstadoNPC.Arrastado)
         {
-            transform.localScale = originalScale;
-            Debug.Log("NPC solto, retornando à escala original!");
+            // A restauração da escala já é tratada por MudarEstado,
+            // mas podemos deixar aqui por segurança ou remover.
+            // transform.localScale = originalScale; 
+            Debug.Log("NPC solto!");
             PararEMudarParaEspera();
         }
     }
@@ -128,12 +205,14 @@ public class NPCMovement : MonoBehaviour
         movementDirection = Random.insideUnitCircle.normalized;
         currentMoveTime = Random.Range(minMoveTime, maxMoveTime);
         Debug.Log("Iniciando movimento na direção " + movementDirection + " por " + currentMoveTime.ToString("F2") + " segundos.");
-        estadoAtual = EstadoNPC.Movendo;
+        // Usa a nova função para mudar o estado
+        MudarEstado(EstadoNPC.Movendo);
     }
 
     private void PararEMudarParaEspera()
     {
-        estadoAtual = EstadoNPC.Esperando;
+        // Usa a nova função para mudar o estado
+        MudarEstado(EstadoNPC.Esperando);
         currentCooldown = Random.Range(minWaitTime, maxWaitTime);
         Debug.Log("Movimento finalizado. Esperando por " + currentCooldown.ToString("F2") + " segundos.");
     }
@@ -153,7 +232,8 @@ public class NPCMovement : MonoBehaviour
         if (hit.collider != null)
         {
             Debug.Log("Colisão iminente detectada com: " + hit.collider.name + ". Cancelando movimento.");
-            estadoAtual = EstadoNPC.Esperando;
+            // Usa a nova função para mudar o estado
+            MudarEstado(EstadoNPC.Esperando);
             currentCooldown = 0.5f;
         }
     }
