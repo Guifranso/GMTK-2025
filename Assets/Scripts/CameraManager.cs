@@ -8,14 +8,17 @@ using UnityEngine.UI;
 
 public class CameraManager : MonoBehaviour
 {
-
-    private PointerEventData pointerEventData;
-    private EventSystem eventSystem;
-
+    // --- VARIÁVEIS DE MOVIMENTO ---
     public float speed;
     public float mushroomMoveDuration; // Duração em segundos para o movimento suave
 
+    // --- VARIÁVEIS DE ZOOM (ADICIONADAS) ---
+    [Header("Zoom Settings")]
+    public float zoomSpeed = 5f;      // Velocidade do zoom
+    public float minZoom = 2f;        // Tamanho ortográfico mínimo (mais zoom)
+    public float maxZoom = 10f;       // Tamanho ortográfico máximo (menos zoom)
 
+    // --- REFERÊNCIAS ---
     public GameObject left;
     public GameObject right;
     public GameObject up;
@@ -23,15 +26,37 @@ public class CameraManager : MonoBehaviour
     public GraphicRaycaster graphicRaycaster;
     public GameObject bigMushroom;
 
+    private PointerEventData pointerEventData;
+    private EventSystem eventSystem;
+    private Camera mainCamera; // Referência para o componente da câmera (ADICIONADO)
 
     void Start()
     {
         eventSystem = EventSystem.current;
+        mainCamera = GetComponent<Camera>(); // Pega o componente Camera no início (ADICIONADO)
     }
 
     void Update()
     {
         CameraMovement();
+        HandleZoom(); // Chama a nova função de zoom a cada frame (ADICIONADO)
+    }
+
+    // --- NOVA FUNÇÃO PARA CONTROLAR O ZOOM ---
+    void HandleZoom()
+    {
+        // Pega o valor do scroll do mouse (-1 para baixo, +1 para cima)
+        float scrollInput = Input.GetAxis("Mouse ScrollWheel");
+
+        if (scrollInput != 0)
+        {
+            // Calcula o novo tamanho ortográfico
+            // Subtraímos porque rolar para cima (scrollInput > 0) deve diminuir o size (zoom in)
+            float newSize = mainCamera.orthographicSize - scrollInput * zoomSpeed;
+
+            // Garante que o novo tamanho esteja dentro dos limites min e max
+            mainCamera.orthographicSize = Mathf.Clamp(newSize, minZoom, maxZoom);
+        }
     }
 
     public void goToBigMushroom()
@@ -50,9 +75,7 @@ public class CameraManager : MonoBehaviour
         while (elapsedTime < mushroomMoveDuration)
         {
             transform.position = Vector3.Lerp(startingPosition, target, elapsedTime / mushroomMoveDuration);
-
             elapsedTime += Time.deltaTime;
-
             yield return null;
         }
         

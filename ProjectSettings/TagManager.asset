@@ -8,6 +8,8 @@ TagManager:
   - Obstacle
   - MiniMushroom
   - Enemy
+  - Food
+  - BigMushroom
   layers:
   - Default
   - TransparentFX

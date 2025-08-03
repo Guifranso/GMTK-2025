@@ -20,15 +20,14 @@ public class NPCMovement : MonoBehaviour
 
     [Header("Configurações de Arrastar")]
     [Tooltip("O quanto o sprite aumenta ao ser selecionado. 1.2 = 20% maior.")]
-    public float scaleMultiplier = 1.2f; // Multiplicador para o efeito de "zoom"
+    public float scaleMultiplier = 1.2f;
 
-    // Variáveis privadas
     private Vector2 movementDirection;
     private float currentCooldown;
     private float currentMoveTime;
     private Rigidbody2D rb;
     private Camera mainCamera;
-    private Vector3 originalScale; // Para guardar a escala original do objeto
+    private Vector3 originalScale;
 
     public enum EstadoNPC
     {
@@ -43,13 +42,9 @@ public class NPCMovement : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
-
         rb.gravityScale = 0;
         mainCamera = Camera.main;
-
-        // Guarda a escala inicial do objeto para poder restaurá-la depois
         originalScale = transform.localScale;
-
         estadoAtual = EstadoNPC.Esperando;
         currentCooldown = Random.Range(minWaitTime, maxWaitTime);
     }
@@ -75,6 +70,7 @@ public class NPCMovement : MonoBehaviour
                 break;
 
             case EstadoNPC.Arrastado:
+                // A lógica de seguir o mouse agora está no FixedUpdate
                 break;
         }
     }
@@ -107,24 +103,22 @@ public class NPCMovement : MonoBehaviour
         }
     }
 
-    void OnMouseDown()
+    // NOVA FUNÇÃO PÚBLICA: Chamada pelo DragController para iniciar o arrasto
+    public void IniciarArrasto()
     {
         estadoAtual = EstadoNPC.Arrastado;
         rb.linearVelocity = Vector2.zero;
-
         transform.localScale = originalScale * scaleMultiplier;
-
         Debug.Log("NPC selecionado, aplicando zoom!");
     }
 
-    void OnMouseUp()
+    // NOVA FUNÇÃO PÚBLICA: Chamada pelo DragController para soltar o NPC
+    public void SoltarArrasto()
     {
         if (estadoAtual == EstadoNPC.Arrastado)
         {
             transform.localScale = originalScale;
-
             Debug.Log("NPC solto, retornando à escala original!");
-
             PararEMudarParaEspera();
         }
     }
