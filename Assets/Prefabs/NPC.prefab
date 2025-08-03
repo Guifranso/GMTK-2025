@@ -91,6 +91,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4bc24e99cd1c7f4095ed6d25010c880, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  audioSource: {fileID: 0}
+  eatSound: {fileID: 0}
+  useGlobalAudioManager: 1
 --- !u!1 &8751410521028058377
 GameObject:
   m_ObjectHideFlags: 0
@@ -304,7 +307,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 1
+  m_SortingOrder: 7
   m_Sprite: {fileID: 6958811825335801016, guid: 3651f31f08b7a7a4db38eb78d525d85c, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
